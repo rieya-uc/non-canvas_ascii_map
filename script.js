@@ -2,8 +2,9 @@ var world_width = 40;
 var world_height = 40;
 var hero_posX = 1;
 var hero_posY = 1;
+
 //var hero = new Hero();
-$(document).ready(function() {
+$(window).load(function() {
 
     $("#buttons").dialog({
 	dialogClass: "no-close"
@@ -12,16 +13,12 @@ $(document).ready(function() {
     var overworld = new Overworld();
     var hero = new Hero();
 
+
     overworld.init();
 
     $(document).keydown(function(key) {
 	overworld.scrollMap(parseInt(key.which));	
     });
-
-    //$(window).resize(function() {
-    //	console.log("is this a zoom?");
-    //    });
-
 
 });
 
@@ -36,36 +33,21 @@ function Hero() {
     */
     $hero.css({"opacity":0.7, "color":"red"});
 
-    /*
-    $("#overworld").scroll(function() {
-	console.log("scroll");
-	
-	$hero.css({top: hero_posY,  left: hero_posX });
-	
-
-	$hero.position({my : "center center",
-			at : "center center",
-			of : "#overworld",
-			collision: "none"});
-
-	
-    });
-	*/
 }
 
 function Overworld() {
 
-    var $overworld = $("#overworld");
+    var $overworld = $("#overworld");  
     var $hero = $("#hero");
 
-    var row = 3;   // 1 = hero, 2 = numbers, 3 = start of map
-    var col = 1;     // note: nth-child elements start indexing from 1
+    var row = 3;   // 1 = initial hero position, 2 = numbers, 3 = start of map
+    var col = 1;   // note: nth-child elements start indexing from 1
 
     var hero_row = 10;     // hero starts here - arbitrary,
     var hero_col = 23;     //  just ensure position is safe
 
-    var line_height = 0;  // a slight fiddle to ensure hero is
-    var col_width = 0;    // lined up correctly on the map
+    var line_height = 0;   // a slight fiddle to ensure hero is
+    var col_width = 0;     // lined up correctly on the map
 
     // set up the overworld window
     $overworld.dialog({
@@ -73,35 +55,25 @@ function Overworld() {
 	cursor:"pointer",
 	height:300,
 	width:300,
-	resizeStop: function(event, ui) { console.log("recenter me please") }
+	resizeStop: function(event, ui) { 
+            updateVariables();
+            recentreWindow();
+            moveHero(hero_col, hero_row); 
+        }
 
     });
+
     $overworld.css('cursor', 'default');
     $overworld.css("overflow", "hidden");  // scroll bars
 
-    /*
-    $overworld.scroll(function() {
-
-	var x,y;
-	x = $("#overworld #map_cols :nth-child(" + hero_col + ")").position().left;
-	y = $("#overworld  div:nth-child(" + hero_row + ")").position().top;
-	
-	//x += col*col_width;
-	y += (row-3)*line_height;
-
-	$hero.css({top:y, left:x});
-    });
-    */
-
     /* align hero to a column/row */
    function moveHero(tocol, torow) {
-	var x,y;
-	x = $("#overworld #map_cols :nth-child(" + tocol + ")").position().left;
-	y = $("#overworld  div:nth-child(" + torow + ")").position().top;
-
-	y += (row-3)*line_height;
-
-	$hero.css({top:y, left:x});
+       var x,y;
+       x = $("#overworld #map_cols :nth-child(" + tocol + ")").position().left;
+       y = $("#overworld  div:nth-child(" + torow + ")").position().top;
+       
+       y += (row-3)*line_height;
+       $hero.css({top:y, left:x});
     }
 
     function generateMap()  {
@@ -156,21 +128,8 @@ function Overworld() {
         
         generateMap();
         updateVariables();
-        
-        // position the overworld window so hero is in the centre
-        
-        var offset = $overworld.height()/line_height;
-        row = Math.ceil(hero_row-offset/2);
-        if (row < 3)
-	    row = 3;
-        var $val = $("#overworld  div:nth-child(" + row + ")");
-        $overworld.scrollTop($val.position().top);
-        
-        var offset = $overworld.width()/col_width;
-        col = Math.ceil(hero_col-offset/2);
-        $val = $("#overworld #map_cols :nth-child(" + col+ ")");
-        $overworld.scrollLeft($val.position().left);
-        
+        recentreWindow();
+
         // manually adjust hero's position so she's in line with
         // the row & column she starts at (i.e. almost centre, but
         // probably not exactly)
@@ -179,6 +138,31 @@ function Overworld() {
         
     }
 
+
+    function recentreWindow() {
+
+        // reset scroll to top left
+        $overworld.scrollTop(0);
+        $overworld.scrollLeft(0);
+
+        // scroll position of overworld window so hero will be in the centre
+        
+        var offset = $overworld.height()/line_height;
+        row = Math.ceil(hero_row-offset/2);
+        if (row < 3)
+	    row = 3;
+        var $val = $("#overworld  div:nth-child(" + row + ")");
+        $overworld.scrollTop($val.position().top);
+
+        var offset = $overworld.width()/col_width;
+        col = Math.ceil(hero_col-offset/2);
+        $val = $("#overworld #map_cols :nth-child(" + col+ ")");
+        $overworld.scrollLeft($val.position().left);
+        
+    }
+
+
+    // these are used to position hero char in centre of overworld
     var top_centre_line = 3;
     var bottom_centre_line = 40;
     var left_centre_line = 1;
@@ -197,7 +181,7 @@ function Overworld() {
 	    $("#overworld  div:nth-child(3)").position().top +
 	    ($overworld.height() / 2);
 
-	for (var i = 3; i <= world_height; i++) {
+        for (var i = 3; i <= world_height; i++) {
 	    if ($("#overworld  div:nth-child(" + i + ")").position().top > centre_pos) {
 		top_centre_line = i-1;
 		break;
