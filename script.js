@@ -6,9 +6,9 @@ var hero_posY = 1;
 //var hero = new Hero();
 $(window).load(function() {
 
-    $("#buttons").dialog({
-	dialogClass: "no-close"
-    });
+    //$("#buttons").dialog({
+	//dialogClass: "no-close"
+    //});
     
     var overworld = new Overworld();
     var hero = new Hero();
@@ -17,20 +17,23 @@ $(window).load(function() {
     overworld.init();
 
     $(document).keydown(function(key) {
-	overworld.scrollMap(parseInt(key.which));	
+	overworld.scrollMap(parseInt(key.which));
+	preventDefault(key);
     });
 
 });
 
+// prevent window containing overworld from scrolling when
+// map has focus
+function preventDefault(e) {
+    e = e || window.event;
+    if (e.preventDefault())
+        e.preventDefault();
+    e.returnValue = false;  
+}
+
 function Hero() {
     var $hero = $("#hero");
-
-    /*
-    $hero.position({my : "center center",
-		    at : "center center",
-		    of : "#overworld",
-		    collision: "none"});
-    */
     $hero.css({"opacity":0.7, "color":"red"});
 
 }
@@ -52,9 +55,10 @@ function Overworld() {
     // set up the overworld window
     $overworld.dialog({
 	dialogClass: "no-close",
-	cursor:"pointer",
+	//cursor:"pointer",
 	height:300,
 	width:300,
+        autoOpen: false,
 	resizeStop: function(event, ui) { 
             updateVariables();
             recentreWindow();
@@ -62,8 +66,12 @@ function Overworld() {
         }
 
     });
+    
+    // prevents the dialog from autoscrolling and taking focus
+    $(".ui-dialog").removeAttr("tabindex");
+    $overworld.dialog("open");
 
-    $overworld.css('cursor', 'default');
+    $overworld.css("cursor", "default");
     $overworld.css("overflow", "hidden");  // scroll bars
 
     /* align hero to a column/row */
